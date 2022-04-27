@@ -1,13 +1,12 @@
 package com.meli.mutant;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.Test;
 
-@SpringBootTest
-class MutantApplicationTests {
+public class MutantApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
+    @Test
+    public void contextLoads() {
+        MutantApplication.main(new String[]{});
+    }
 
 }
