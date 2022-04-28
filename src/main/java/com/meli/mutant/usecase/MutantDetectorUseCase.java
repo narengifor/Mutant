@@ -10,9 +10,15 @@ import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * UseCase con la logica para recorrer secuencias de ADN e identificar si la secuencia de ADN es mutante o humana.
+ */
+
 @RequiredArgsConstructor
 public class MutantDetectorUseCase {
-
+    /**
+     * variables globales
+     */
     private static final int IS_MUTANT = 1;
     private static final int IS_HUMAN = 0;
     private static final int LENGTH_EQUAL_LETTERS = 4;
@@ -22,6 +28,11 @@ public class MutantDetectorUseCase {
     @Autowired
     private final DnaRepository dnaRepository;
 
+    /**
+     * Metodo para identificar si es mutante haciendo uso de otros metodos para verificar las secuencias segun su orientacion.
+     * @param dna Secuencia de ADN a verificar,
+     * @return Mono boleano en donde si la secuencia es mutante retorna true y en caso de ser humana se retorna mono vacio.
+     */
     public Mono<Boolean> isMutant(String[] dna) {
         if (!dnaChecker(dna)) {
             return Mono.empty();
@@ -48,6 +59,11 @@ public class MutantDetectorUseCase {
         return Mono.empty();
     }
 
+    /**
+     * Guarda el objeto DNA en la BD
+     * @param dna secuendia de ADN
+     * @param type identificados de la secuencian de ADN (1 es mutante) (0  es humano)
+     */
     void saveDna(String[] dna, int type) {
         Dna newDna = new Dna();
         String strDna = Arrays.toString(dna);
@@ -57,11 +73,20 @@ public class MutantDetectorUseCase {
         dnaRepository.saveAndFlush(newDna);
     }
 
+    /**
+     * Actualiza la secuencia de ADN incrementando el valor en uno si la secuancia de ADN ya fue consultada.
+     * @param dna Objeto con la informacion de la secuencia del ADN, identificador y valor acumulado.
+     */
     void updateDna(Dna dna) {
         dna.setAccumulate(dna.getAccumulate() + 1);
         dnaRepository.saveAndFlush(dna);
     }
 
+    /**
+     * Verifica que la secuandia de ADN sea NxN, tamaño de filas y columnas, que solo tenga las letras en mayuscula y que no sean diferentes de ATCG
+     * @param dna secuencia de ADN
+     * @return Si la matrix cumple con las verificaciones retorna true, de lo contrario false.
+     */
     public Boolean dnaChecker(String[] dna) {
         int DNArows = dna.length;
         Pattern pattern = Pattern.compile("[ATCG]+");
@@ -78,11 +103,22 @@ public class MutantDetectorUseCase {
         return true;
     }
 
+    /**
+     * Busca en la BD si al secuencia de ADN ya fue ingresada
+     * @param dna Secuandia de ADN a buscar
+     * @return En caso de encontrarla retonar objeto DNA
+     */
     Dna dnaSequenceExists(String[] dna) {
         String strDna = Arrays.toString(dna);
         return dnaRepository.findByDna(strDna);
     }
 
+    /**
+     * Cuenta el numero de matches de la expresion regular dada, es decir el numero de estructuras mutantes
+     * encontradas en la secuencia de ADN de manera horizontal
+     * @param dna Secuencia de ADN
+     * @return Numero de estructuras mutantes encontradas
+     */
     public int numHorizontalSequences(String[] dna) {
         int cont = 0;
         for (String s : dna) {
@@ -93,7 +129,12 @@ public class MutantDetectorUseCase {
         }
         return cont;
     }
-
+    /**
+     * Cuenta el numero de matches de la expresion regular dada, es decir el numero de estructuras mutantes
+     * encontradas en la secuencia de ADN de manera vertical
+     * @param dna Secuencia de ADN
+     * @return Numero de estructuras mutantes encontradas
+     */
     public int numVerticalSequences(String[] dna) {
         int cont = 0;
         int DNArows = dna.length;
@@ -109,7 +150,12 @@ public class MutantDetectorUseCase {
         }
         return cont;
     }
-
+    /**
+     * Cuenta el numero de matches de la expresion regular dada, es decir el numero de estructuras mutantes
+     * encontradas en la secuencia de ADN de manera contraDiagonal
+     * @param dna Secuencia de ADN
+     * @return Numero de estructuras mutantes encontradas
+     */
     int numContraDiagonalSequences(String[] dna) {
         int cont = 0;
         int size = dna.length;
@@ -131,6 +177,12 @@ public class MutantDetectorUseCase {
         return cont;
     }
 
+    /**
+     * Cuenta el numero de matches de la expresion regular dada, es decir el numero de estructuras mutantes
+     * encontradas en la secuencia de ADN de manera diagonal
+     * @param dna Secuencia de ADN
+     * @return Numero de estructuras mutantes encontradas
+     */
     int numDiagonalSequences(String[] dna) {
         int cont = 0;
         int size = dna.length;
@@ -152,6 +204,15 @@ public class MutantDetectorUseCase {
         return cont;
     }
 
+    /**
+     * Arma la secuencia contraDiagonal del ADN a analizar
+     * @param startRow Posicion inicial de las filas
+     * @param startColum Posicion inicial de las columnas
+     * @param size Tamaño de la secuencia de ADN
+     * @param dna Secuencia de ADN a analizar
+     * @param orientation Identificador de posicion de inicio para la secuencia en contraDiagonal
+     * @return Cadena con la secuencia de ADN con los bases nitrogenas encontradas en secuencia contraDiagonal
+     */
     String getContraDiagonal(int startRow, int startColum, int size, String[] dna, String orientation) {
         String diagonal = "";
         switch (orientation) {
@@ -179,6 +240,15 @@ public class MutantDetectorUseCase {
         return diagonal;
     }
 
+    /**
+     * Arma la secuencia diagonal del ADN a analizar
+     * @param startRow Posicion inicial de las filas
+     * @param startColum Posicion inicial de las columnas
+     * @param size Tamaño de la secuencia de ADN
+     * @param dna Secuencia de ADN a analizar
+     * @param orientation Identificador de posicion de inicio para la secuencia en diagonal
+     * @return Cadena con la secuencia de ADN con los bases nitrogenas encontradas en secuencia diagonal
+     */
     String getDiagonal(int startRow, int startColum, int size, String[] dna, String orientation) {
         String diagonal = "";
         switch (orientation) {
@@ -206,6 +276,11 @@ public class MutantDetectorUseCase {
         return diagonal;
     }
 
+    /**
+     * Meotodo para validar si exite mas de una estructura mutante dentro de la secuencia de ADN
+     * @param num Numero de estructuras mutantes encontradas en la secuencia de ADN
+     * @return Valor boleano true para indicar que existe mas de una estructura mutante de los contrario es falso.
+     */
     Boolean numSequencesFound(int num) {
         numAccumulatedSequences = numAccumulatedSequences + num;
         if (numAccumulatedSequences > 1) {
